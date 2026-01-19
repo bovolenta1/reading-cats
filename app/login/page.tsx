@@ -18,7 +18,7 @@ export default function LoginPage() {
             <section className='relative p-8 lg:p-10'>
               <div className='flex items-center gap-3'>
                 <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10'>
-                  <span className='text-xl'>🐱</span>
+                  <Image src='/reading-cat-icon.png' alt='Reading Cats' width={32} height={32} className='h-auto' priority />
                 </div>
                 <div>
                   <p className='text-sm font-medium text-white/70'>Reading Cats</p>
@@ -33,7 +33,7 @@ export default function LoginPage() {
 
                   <div className='relative flex flex-col items-center text-center'>
                     <span className='text-sm text-white/60'>
-                      <Image src='/reading-cats-pixel-art.png' alt='Reading Cats' width={300} height={300} className='h-auto w-52' priority />
+                      <Image src='/reading-cat-image.png' alt='Reading Cats' width={300} height={300} className='h-auto' priority />
                     </span>
 
                     <p className='mt-4 text-sm text-white/70'>Entre e acompanhe desafios de leitura com amigos.</p>
