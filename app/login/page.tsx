@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import LoginPanel from './LoginPanel';
 
 export default function LoginPage() {
   return (
@@ -51,47 +52,7 @@ export default function LoginPage() {
             {/* Right / form */}
             <section className='p-8 lg:p-10'>
               <div className='mx-auto w-full max-w-md'>
-                <h1 className='text-2xl font-semibold text-white'>Bem-vindo de volta</h1>
-                <p className='mt-2 text-sm text-white/60'>Vamos te mandar um link mágico para entrar sem senha.</p>
-
-                <form className='mt-8 space-y-4'>
-                  <div>
-                    <label className='text-sm font-medium text-white/80'>Email</label>
-                    <div className='mt-2'>
-                      <input
-                        type='email'
-                        autoComplete='email'
-                        placeholder='voce@exemplo.com'
-                        className='w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/40 outline-none ring-0 transition focus:border-[#39FF14]/40 focus:ring-2 focus:ring-[#39FF14]/20'
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type='button'
-                    className='w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#1F1B3A] transition hover:bg-white/90 active:scale-[0.99]'
-                  >
-                    Enviar link mágico
-                  </button>
-
-                  <div className='flex items-center gap-3'>
-                    <div className='h-px flex-1 bg-white/10' />
-                    <span className='text-xs text-white/40'>ou</span>
-                    <div className='h-px flex-1 bg-white/10' />
-                  </div>
-
-                  <button
-                    type='button'
-                    className='w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 active:scale-[0.99]'
-                  >
-                    Entrar com Google (depois)
-                  </button>
-
-                  <p className='pt-2 text-xs text-white/45'>Ao continuar, você concorda com nossos termos e política de privacidade.</p>
-                </form>
-
-                {/* footerzinho */}
-                <div className='mt-10 text-xs text-white/40'>Dica: se não achar o email, veja o spam.</div>
+                <LoginPanel />
               </div>
             </section>
           </div>
