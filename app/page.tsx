@@ -1,5 +1,11 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const store = await cookies();
+  const accessToken = store.get("access_token")?.value;
+
+  if (accessToken) redirect("/feed");
+
   redirect("/login");
 }
