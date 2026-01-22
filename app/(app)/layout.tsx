@@ -5,7 +5,7 @@ import Header from "@/src/components/Header";
 import StarsBackground from "@/src/components/StarsBackground";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  await requireAuth();
+  //await requireAuth();
 
   const store = await cookies();
   const idToken = store.get("id_token")?.value;
