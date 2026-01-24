@@ -1,29 +1,26 @@
 'use client';
 
 import Image from 'next/image';
-
-type User = {
-  name?: string;
-  email?: string;
-  picture?: string;
-} | null;
+import { useUser } from '@/src/contexts/user/UserContext';
 
 function getInitials(nameOrEmail: string) {
   const s = nameOrEmail.trim();
   if (!s) return '—';
 
-  // email -> primeira letra
   if (s.includes('@')) return s[0]?.toUpperCase() ?? '—';
 
-  // nome -> iniciais
   const parts = s.split(/\s+/).filter(Boolean);
   const first = parts[0]?.[0] ?? '';
-  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : '';
+  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
   return (first + last).toUpperCase() || '—';
 }
 
-export default function Header({ user }: { user: User }) {
-  const displayName = user?.name ?? user?.email ?? '—';
+export default function Header() {
+  const { me } = useUser();
+
+  console.log(me)
+
+  const displayName = me?.displayName ?? me?.email ?? '—';
   const initials = getInitials(displayName);
 
   return (
@@ -38,7 +35,9 @@ export default function Header({ user }: { user: User }) {
           <div className='leading-tight'>
             <div className='flex items-center gap-2'>
               <span className='text-sm font-semibold tracking-tight text-white'>Reading Cats</span>
-              <span className='hidden rounded-full bg-white/5 px-2 py-0.5 text-[11px] text-white/70 ring-1 ring-white/10 md:inline-flex'>beta</span>
+              <span className='hidden rounded-full bg-white/5 px-2 py-0.5 text-[11px] text-white/70 ring-1 ring-white/10 md:inline-flex'>
+                beta
+              </span>
             </div>
             <div className='text-xs text-white/55'>Cozy reading, daily.</div>
           </div>
@@ -78,9 +77,15 @@ export default function Header({ user }: { user: User }) {
 
           {/* User block */}
           <div className='flex items-center gap-3 rounded-2xl bg-white/5 px-2 py-2 ring-1 ring-white/10'>
-            {user?.picture ? (
+            {me?.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.picture} alt='Foto' width={36} height={36} className='h-9 w-9 rounded-full object-cover ring-1 ring-white/15' />
+              <img
+                src={me.avatarUrl}
+                alt='Foto'
+                width={36}
+                height={36}
+                className='h-9 w-9 rounded-full object-cover ring-1 ring-white/15'
+              />
             ) : (
               <div className='grid h-9 w-9 place-items-center rounded-full bg-black/20 text-xs font-semibold text-white/80 ring-1 ring-white/10'>
                 {initials}
@@ -88,11 +93,20 @@ export default function Header({ user }: { user: User }) {
             )}
 
             <div className='hidden min-w-0 md:block'>
-              <div className='truncate text-sm font-semibold text-white/90'>Bem-vindo, {displayName}</div>
-              {user?.email ? (
-                <div className='truncate text-xs text-white/55'>{user.email}</div>
+              {me ? (
+                <>
+                  <div className='truncate text-sm font-semibold text-white/90'>Bem-vindo, {displayName}</div>
+                  {me.email ? (
+                    <div className='truncate text-xs text-white/55'>{me.email}</div>
+                  ) : (
+                    <div className='text-xs text-white/55'>Você está logado ✅</div>
+                  )}
+                </>
               ) : (
-                <div className='text-xs text-white/55'>Você está logado ✅</div>
+                <>
+                  <div className='truncate text-sm font-semibold text-white/90'>Bem-vindo</div>
+                  <div className='text-xs text-white/55'>Não autenticado</div>
+                </>
               )}
             </div>
 

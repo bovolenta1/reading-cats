@@ -44,9 +44,10 @@ const groups: GroupItem[] = [
       { type: 'dicebear', seed: 'Bruno' },
     ],
   },
-]
+];
 
 export default async function FeedPage() {
+
   const posts = [
     {
       name: 'Luna',
@@ -145,9 +146,7 @@ export default async function FeedPage() {
           </div>
 
           <div className='flex-1'>
-            <div className='rounded-xl bg-black/20 p-3 text-sm text-white/60 ring-1 ring-white/10'>
-              Compartilhe uma dica de leitura… (mock)
-            </div>
+            <div className='rounded-xl bg-black/20 p-3 text-sm text-white/60 ring-1 ring-white/10'>Compartilhe uma dica de leitura… (mock)</div>
 
             <div className='mt-3 flex items-center justify-between'>
               <div className='flex gap-2 text-white/60'>
