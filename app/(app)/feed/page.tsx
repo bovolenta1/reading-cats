@@ -1,9 +1,8 @@
-import React from 'react';
-
 import GroupsPanel, { GroupItem } from '@/src/components/feed/GroupsPanel';
-import StreakHero from '@/src/components/feed/StreakHero';
 import PostCard from '@/src/components/feed/PostCard';
 import Avatar from '@/src/components/ui/Avatar';
+import { getReadingProgressServer } from '@/src/lib/api/reading.server';
+import StreakSection from '@/src/components/feed/StreakSection';
 
 const groups: GroupItem[] = [
   {
@@ -47,6 +46,7 @@ const groups: GroupItem[] = [
 ];
 
 export default async function FeedPage() {
+  const progress = await getReadingProgressServer();
 
   const posts = [
     {
@@ -117,7 +117,7 @@ export default async function FeedPage() {
       <section className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6'>
         {/* Col 1 / Row 1 */}
         <div className='lg:col-start-1 lg:row-start-1'>
-          <StreakHero streakDays={7} todayPages={13} goalPages={20} checkedDays={5} />
+          <StreakSection initialProgress={progress} />
         </div>
 
         {/* Col 2 / Row 1-2 (row span) */}

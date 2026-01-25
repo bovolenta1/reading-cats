@@ -1,47 +1,53 @@
-import React from 'react';
+'use client';
+
 import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
 import { FaPaw } from 'react-icons/fa6';
-import { FaCheck, FaMinus } from 'react-icons/fa6';
-import ProgressBar from '../ui/ProgressBar';
 import { PiMedal } from 'react-icons/pi';
 
+import ProgressBar from '../ui/ProgressBar';
+import RegisterReadingModal from './RegisterReadingModal';
+import MiniCalendar from '../ui/MiniCalendar';
+import Button from '../ui/Button';
+
+import { postReading } from '@/src/lib/api/reading';
+import type { ReadingProgress } from '@/src/lib/api/reading';
+
 type StreakHeroProps = {
-  streakDays: number;
-  todayPages: number;
-  goalPages: number;
-  checkedDays?: number; // 0..7
+  // snapshot vindo do server (GET /v1/reading/progress)
+  progress: ReadingProgress;
 };
 
-function MiniCalendar({ checkedDays = 5 }: { checkedDays?: number }) {
-  const days = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+export default function StreakHero({ progress }: StreakHeroProps) {
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  return (
-    <div className='mt-4 rounded-2xl bg-black/20 p-3 ring-1 ring-white/10'>
-      <div className='grid grid-cols-7 gap-2'>
-        {days.map((d, i) => {
-          const done = i < checkedDays;
+  // Mantém um estado local porque o componente é interativo (POST atualiza snapshot)
+  const [localProgress, setLocalProgress] = useState<ReadingProgress>(progress);
 
-          return (
-            <div key={d} className='flex flex-col items-center'>
-              <span className='text-[10px] font-medium text-white/45'>{d}</span>
+  // Se o server re-renderizar e mandar outro snapshot, sincroniza
+  useEffect(() => setLocalProgress(progress), [progress]);
 
-              <div className='mt-1 flex h-6 items-center justify-center'>
-                {done ? (
-                  <FaCheck className='text-[#39FF14] drop-shadow-[0_6px_16px_rgba(57,255,20,0.18)]' size={18} />
-                ) : (
-                  <FaMinus className='text-white/25' size={16} />
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+  const streakDays = localProgress.streak.current_days;
+  const todayPages = localProgress.day.pages;
+  const goalPages = localProgress.day.goal_pages;
 
-export default function StreakHero({ streakDays, todayPages, goalPages, checkedDays }: StreakHeroProps) {
-  const pct = goalPages > 0 ? (todayPages / goalPages) * 100 : 0;
+  const pct = useMemo(() => {
+    return goalPages > 0 ? (todayPages / goalPages) * 100 : 0;
+  }, [todayPages, goalPages]);
+
+  const isCheckedToday = todayPages > 0;
+
+  const handleSubmit = async (deltaPages: number) => {
+    setSubmitting(true);
+    try {
+      const data = await postReading(deltaPages);
+      if (data?.progress) setLocalProgress(data.progress);
+      setOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <section className='relative overflow-hidden rounded-3xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur'>
@@ -49,11 +55,8 @@ export default function StreakHero({ streakDays, todayPages, goalPages, checkedD
       <div className='pointer-events-none absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-purple-500/10 blur-3xl' />
 
       <div className='relative z-0'>
-        {/* reserva espaço pro gato no desktop */}
         <div className='min-w-0 pr-0'>
-          {/* HEADER: medalha + texto + progress ao lado (não abaixo) */}
           <div className='flex items-center gap-4'>
-            {/* medalha */}
             <div className='relative h-16 w-16 shrink-0 md:h-[72px] md:w-[72px]'>
               <Image
                 src='/paw-medal.png'
@@ -65,7 +68,6 @@ export default function StreakHero({ streakDays, todayPages, goalPages, checkedD
               />
             </div>
 
-            {/* texto + progress (lado a lado com a medalha) */}
             <div className='min-w-0 flex-1'>
               <h2 className='truncate text-lg font-semibold text-white'>
                 Você está em <span className='text-[#39FF14]'>{streakDays} dias seguidos</span>!
@@ -76,36 +78,50 @@ export default function StreakHero({ streakDays, todayPages, goalPages, checkedD
                   Meta do dia: {todayPages}/{goalPages} páginas
                 </p>
               </div>
-              <div className='pt-2 min-w-0 flex-1'>
-                  <ProgressBar value={pct} />
-                </div>
+
+              <div className='min-w-0 flex-1 pt-2'>
+                <ProgressBar value={pct} />
+              </div>
             </div>
           </div>
 
-          {/* calendário + botões */}
           <div className='mt-4'>
-            <MiniCalendar checkedDays={checkedDays} />
+            <MiniCalendar week={localProgress.week.map(d => ({ date: d.date, checked: d.checked }))} />
 
             <div className='mt-4 flex flex-col gap-2 sm:flex-row'>
-              <button
-                className='cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#39FF14] px-4 py-2 text-sm font-semibold text-[#0F0C22] shadow-lg hover:brightness-110'
+              <Button
+                variant='primary'
+                className='inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#39FF14] px-4 py-2 text-sm font-semibold text-[#0F0C22] shadow-lg hover:brightness-110'
                 type='button'
+                onClick={() => setOpen(true)}
+                disabled={submitting}
               >
                 <FaPaw size={16} />
-                Registrar leitura
-              </button>
+                {isCheckedToday ? 'Adicionar páginas' : 'Registrar leitura'}
+              </Button>
 
-              <button
-                className='cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10'
+              <Button
+                className='inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10'
                 type='button'
+                disabled={submitting}
               >
                 <PiMedal size={16} />
                 Trocar meta
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       </div>
+
+      <RegisterReadingModal
+        open={open}
+        todayPages={todayPages}
+        goalPages={goalPages}
+        onClose={() => {
+          if (!submitting) setOpen(false);
+        }}
+        onSubmit={handleSubmit}
+      />
     </section>
   );
 }

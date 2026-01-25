@@ -18,8 +18,6 @@ function getInitials(nameOrEmail: string) {
 export default function Header() {
   const { me } = useUser();
 
-  console.log(me)
-
   const displayName = me?.displayName ?? me?.email ?? '—';
   const initials = getInitials(displayName);
 
