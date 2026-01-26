@@ -7,11 +7,13 @@ import { PiMedal } from 'react-icons/pi';
 
 import ProgressBar from '../ui/ProgressBar';
 import RegisterReadingModal from './RegisterReadingModal';
+import ChangeGoalModal from './ChangeGoalModal';
 import MiniCalendar from '../ui/MiniCalendar';
 import Button from '../ui/Button';
+import Toast from '../ui/Toast';
 
-import { postReading } from '@/src/lib/api/reading';
-import type { ReadingProgress } from '@/src/lib/api/reading';
+import { postReading, putReadingGoal } from '@/src/lib/api/reading';
+import type { ReadingProgress, ChangeGoalResponse } from '@/src/lib/api/reading';
 
 type StreakHeroProps = {
   // snapshot vindo do server (GET /v1/reading/progress)
@@ -20,10 +22,14 @@ type StreakHeroProps = {
 
 export default function StreakHero({ progress }: StreakHeroProps) {
   const [open, setOpen] = useState(false);
+  const [openGoal, setOpenGoal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // Mantém um estado local porque o componente é interativo (POST atualiza snapshot)
   const [localProgress, setLocalProgress] = useState<ReadingProgress>(progress);
+  const [nextGoal, setNextGoal] = useState<ChangeGoalResponse['next_goal'] | null>(null);
 
   // Se o server re-renderizar e mandar outro snapshot, sincroniza
   useEffect(() => setLocalProgress(progress), [progress]);
@@ -44,6 +50,20 @@ export default function StreakHero({ progress }: StreakHeroProps) {
       const data = await postReading(deltaPages);
       if (data?.progress) setLocalProgress(data.progress);
       setOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleChangeGoal = async (newGoal: number): Promise<ChangeGoalResponse> => {
+    setSubmitting(true);
+    try {
+      const data = await putReadingGoal(newGoal);
+      setNextGoal(data.next_goal);
+      setToastMessage(`✓ Nova meta de ${data.next_goal.daily_pages} pág será válida a partir de ${new Date(data.next_goal.valid_from).toLocaleDateString('pt-BR')}`);
+      setShowToast(true);
+      setOpenGoal(false);
+      return data;
     } finally {
       setSubmitting(false);
     }
@@ -77,6 +97,11 @@ export default function StreakHero({ progress }: StreakHeroProps) {
                 <p className='shrink-0 text-sm text-white/60'>
                   Meta do dia: {todayPages}/{goalPages} páginas
                 </p>
+                {nextGoal && (
+                  <span className='text-xs text-white/40 px-2 py-1 rounded-full bg-white/5 border border-white/10'>
+                    Amanhã: {nextGoal.daily_pages} pág
+                  </span>
+                )}
               </div>
 
               <div className='min-w-0 flex-1 pt-2'>
@@ -103,6 +128,7 @@ export default function StreakHero({ progress }: StreakHeroProps) {
               <Button
                 className='inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10'
                 type='button'
+                onClick={() => setOpenGoal(true)}
                 disabled={submitting}
               >
                 <PiMedal size={16} />
@@ -122,6 +148,17 @@ export default function StreakHero({ progress }: StreakHeroProps) {
         }}
         onSubmit={handleSubmit}
       />
+
+      <ChangeGoalModal
+        open={openGoal}
+        currentGoal={goalPages}
+        onClose={() => {
+          if (!submitting) setOpenGoal(false);
+        }}
+        onSubmit={handleChangeGoal}
+      />
+
+      <Toast open={showToast} title={toastMessage} onClose={() => setShowToast(false)} />
     </section>
   );
 }
