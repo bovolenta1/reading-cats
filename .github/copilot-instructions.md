@@ -1,134 +1,50 @@
-# Reading Cats — AI Coding Agent Instructions
+# Reading Cats — AI Coding Agent Instructions (concise)
 
-## Project Overview
-**Reading Cats** is a social reading progress tracking app with a **Next.js 16** frontend (TypeScript, React 19, Tailwind) and a **Go backend** running on AWS Lambda. The app uses AWS Cognito (Google OAuth) for authentication and Postgres (Neon) for data storage.
+Purpose: quickly orient AI coding agents to be productive in this Next.js frontend repo.
 
-**Frontend:** `c:\Users\eduar\OneDrive\Documentos\Projetinhos\reading-cats` (this repo)  
-**Backend:** Go + AWS Lambda (separate repo, called via `process.env.API_BASE_URL`)
+Project snapshot
+- Frontend: Next.js 16 (TS, React 19, App Router), Tailwind. Repo root is the app code.
+- Backend: Separate Go Lambda API (called via `API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL`).
+- Auth: AWS Cognito (Google OAuth + PKCE). Tokens are stored in httpOnly cookies.
 
----
+High-level architecture and data flows (what matters)
+- Browser → Next.js App Router pages/components. Client-side API calls go to internal API routes under `app/api/*` which proxy to backend.
+- Server-only code (files importing `server-only`) calls backend directly via `src/lib/api/backend.ts` using `id_token` from cookies.
+- Authentication flow: login → Cognito → tokens in cookies (`id_token` used as bearer token to backend). See `app/api/auth/google/route.ts`, `app/(auth)/auth/callback/route.ts`, and `app/api/auth/otp/*` for OTP flow.
 
-## Authentication & User Data Flow
+Key developer conventions (project-specific)
+- Two fetch paths: server-only code uses `backendFetchJSON()` directly (no proxy). Client code must call `fetch('/api/feature')` which forwards to backend. Inspect `src/lib/api/reading.server.ts` vs `src/lib/api/reading.ts` for examples.
+- User context: `UserProvider` is created at layout level. Canonical files: `app/(app)/layout.tsx` and `src/contexts/user/UserContext.tsx`.
+- Cookies: use Next.js `cookies()` server API to read `id_token` and other auth cookies in API routes and server components.
 
-### Key Auth Pattern
-1. **OAuth with Cognito:** Google login → Cognito PKCE flow → tokens stored in `httpOnly` cookies
-2. **Tokens in Cookies:**
-   - `access_token` — proves user is authenticated (checked in protected pages)
-   - `id_token` — JWT used to call backend API with `Authorization: Bearer {id_token}`
-   - `oauth_state` & `pkce_verifier` — temporary PKCE cookies (cleared after callback)
+Critical files to read first
+- App layout and auth: app/(app)/layout.tsx, app/(auth)/layout.tsx
+- API proxy examples: app/api/me/route.ts, app/api/reading/route.ts
+- Backend helper: src/lib/api/backend.ts
+- Auth helpers: src/lib/auth/getUserFromIdToken.ts, src/lib/auth/requireAuth.ts
+- User types/context: src/contexts/user/types.ts, src/contexts/user/UserContext.tsx
 
-3. **Protected Pages:** Use `requireAuth()` in layout (e.g., [app/(app)/layout.tsx](app/(app)/layout.tsx)) to redirect unauthenticated users to `/login`
+Run & debug (commands you will likely need)
+- Start dev server: `npm run dev` (Next.js dev on :3000) — default for local testing.
+- Lint: `npm run lint`.
+- Build: `npm run build` and `npm run start` for production preview.
 
-### User Data Fetching
-- **Layout level** ([app/(app)/layout.tsx](app/(app)/layout.tsx)): Fetch `/v1/me` from backend using `id_token`, pass to `UserProvider`
-- **Client level** ([src/contexts/user/UserContext.tsx](src/contexts/user/UserContext.tsx)): Context stores `Me` object + `refresh()` method for manual sync
-- **API proxy** ([app/api/me/route.ts](app/api/me/route.ts)): Validates `id_token` exists, forwards to backend
+Integration notes and external dependencies
+- Cognito: env vars `COGNITO_CLIENT_ID`, `COGNITO_DOMAIN`, `APP_URL` used for OAuth flows. See API routes under `app/api/auth/*` and OTP handlers at `app/api/auth/otp/*`.
+- Backend base URL: `API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL` — server expects `id_token` as Bearer for backend calls.
+- DiceBear avatars: deterministic avatar generation in `src/lib/utils/avatar.ts`.
 
-**User type** ([src/contexts/user/types.ts](src/contexts/user/types.ts)): `Me` = `{ id, cognitoSub, email?, displayName?, avatarUrl?, profileSource?, createdAt?, updatedAt? }`
+What AI agents should do differently here (concrete guidelines)
+- Prefer server-only calls when editing server components or API routes that already use `server-only` (avoid adding unnecessary client proxies).
+- When modifying auth or API proxy routes, update cookie handling and maxAge to match existing patterns (see `app/api/auth/otp/start/route.ts`).
+- Use existing helpers (`backendFetchJSON`, `requireAuth`, `getUserFromIdToken`) rather than reimplementing token parsing or fetch logic.
 
----
+If you change types: update `src/contexts/user/types.ts` and then run quick grep for usages before changing components.
 
-## Architecture: Client-Side Data Fetching
+Quick links (locate these first when exploring)
+- `app/(app)/layout.tsx` — protected app layout
+- `app/api/me/route.ts` — API proxy pattern
+- `src/lib/api/backend.ts` — backendFetchJSON helper
+- `src/contexts/user/UserContext.tsx` — Me type and refresh
 
-### Server vs Client Fetching
-- **Server-only calls** (marked with `import "server-only"`): Use direct `backendFetchJSON()` with `id_token` from cookies
-  - Examples: [src/lib/api/reading.server.ts](src/lib/api/reading.server.ts), [app/(app)/layout.tsx](app/(app)/layout.tsx)
-  - **Why:** Direct backend access; no extra HTTP hop through Next.js API routes
-
-- **Client-side calls:** Go through Next.js API routes (e.g., `/api/me`) then to backend
-  - Examples: [src/lib/api/reading.ts](src/lib/api/reading.ts) (uses `fetch('/api/reading', ...)`), [UserContext refresh()](src/contexts/user/UserContext.tsx#L24)
-  - **Why:** Browser can't access backend directly; API routes act as proxy
-
-### Backend API Helper
-[src/lib/api/backend.ts](src/lib/api/backend.ts): `backendFetchJSON<T>(path, { token?, method?, body?, cache? })` — handles Bearer token headers, JSON parsing, and throws `ApiError` on non-2xx responses
-
----
-
-## Component & State Management Patterns
-
-### Layout Structure
-- **App layout** ([app/(app)/layout.tsx](app/(app)/layout.tsx)): Wraps protected pages with `UserProvider` (holds current user)
-- **Auth layout** ([app/(auth)/layout.tsx](app/(auth)/layout.tsx)): Separate layout for `/login` and `/auth/callback`
-
-### Reusable Components
-- [src/components/ui/Button.tsx](src/components/ui/Button.tsx): Props extend `HTMLButtonElement` (standard pattern)
-- [src/components/ui/MiniCalendar.tsx](src/components/ui/MiniCalendar.tsx): Day entries from reading progress
-- [src/components/feed/GroupsPanel.tsx](src/components/feed/GroupsPanel.tsx): Lists reading groups with avatars (see `GroupItem` type)
-
-### Avatar Generation
-Uses **DiceBear** ([src/lib/utils/avatar.ts](src/lib/utils/avatar.ts)) for deterministic avatars from seeds (e.g., `seed: 'Eduardo'` → consistent avatar per name)
-
----
-
-## Reading Progress API
-
-### Data Fetching
-- **Server**: [src/lib/api/reading.server.ts](src/lib/api/reading.server.ts) — `getReadingProgressServer()` → calls `/v1/reading/progress` with `id_token`
-- **Client**: [src/lib/api/reading.ts](src/lib/api/reading.ts) — `getReadingProgress()` & `postReading(pages)` → call `/api/reading/*` routes
-
-### Response Types
-```typescript
-ReadingProgress = {
-  day: { date, pages, goal_pages },
-  streak: { current_days },
-  week: [{ date, pages, checked }]
-}
-```
-
----
-
-## Key Files by Purpose
-
-| Purpose | Files |
-|---------|-------|
-| Auth flow | [app/(auth)/](app/(auth)/), [app/api/auth/google/route.ts](app/api/auth/google/route.ts), [app/(auth)/auth/callback/route.ts](app/(auth)/auth/callback/route.ts) |
-| Protected routes | [app/(app)/layout.tsx](app/(app)/layout.tsx), [src/lib/auth/requireAuth.ts](src/lib/auth/requireAuth.ts) |
-| User context | [src/contexts/user/](src/contexts/user/) |
-| API calls | [src/lib/api/](src/lib/api/) |
-| Feed components | [src/components/feed/](src/components/feed/) |
-| UI primitives | [src/components/ui/](src/components/ui/) |
-
----
-
-## Development Commands
-
-```bash
-npm run dev          # Start Next.js dev server (http://localhost:3000)
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-```
-
-**Environment variables** (`.env.local` — not committed):
-- `NEXT_PUBLIC_API_BASE_URL` — backend base URL (public, can be in browser)
-- `API_BASE_URL` — same (server-side)
-- `APP_URL` — OAuth redirect base (e.g., `http://localhost:3000`)
-- `COGNITO_DOMAIN` — AWS Cognito domain
-- `COGNITO_CLIENT_ID` — OAuth client ID
-
----
-
-## Common Tasks
-
-### Adding a New Page
-1. Create file in `app/(app)/` or `app/(auth)/` with `page.tsx`
-2. If protected, ensure layout uses `requireAuth()` and `UserProvider`
-3. Use `backendFetchJSON()` for server-side data, or proxy via API routes for client
-
-### Adding an API Proxy Route
-1. Create `app/api/[feature]/route.ts`
-2. Extract `id_token` from cookies
-3. Call backend via `backendFetchJSON()` with token
-4. Return JSON response (see [app/api/me/route.ts](app/api/me/route.ts))
-
-### Updating User Context
-Modify [src/contexts/user/types.ts](src/contexts/user/types.ts) → update `Me` type → adjust any code accessing `me.*` properties
-
----
-
-## Conventions
-
-- **"server-only" imports**: Mark files that call backend APIs directly (cannot run in browser)
-- **API responses**: Always wrap in `try-catch` with `ApiError` check for proper status codes
-- **Cookies**: Use `const store = await cookies()` then `store.get('name')?.value` (Next.js 15+ pattern)
-- **Styling**: Tailwind CSS with dark theme base (`bg-[#0b0f14]`, `text-white`)
+If anything here is unclear or you want more examples (e.g., specific auth handlers or API route templates), tell me which area to expand and I will iterate.

@@ -27,13 +27,38 @@ export default function LoginPage() {
           <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/10" />
 
           <div className="grid grid-cols-1 lg:grid-cols-2">
-            {/* LEFT */}
-            <section className="relative p-7 sm:p-8 lg:p-10">
+            {/* LEFT - Image section hidden on mobile */}
+            <section className="relative p-7 sm:p-8 lg:p-10 hidden lg:flex flex-col items-center justify-center">
               {/* subtle galaxy overlay inside the left panel */}
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_600px_at_40%_10%,rgba(255,255,255,.06),transparent_55%)]" />
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(700px_500px_at_30%_85%,rgba(57,255,20,.08),transparent_60%)]" />
 
-              <div className="relative flex items-center gap-3">
+              <div className="relative flex flex-col items-center text-center">
+                <Image
+                  src="/reading-cat-2.png"
+                  alt="Reading Cats illustration"
+                  width={360}
+                  height={360}
+                  priority
+                  className="h-auto w-[260px] sm:w-[300px] drop-shadow-[0_20px_40px_rgba(0,0,0,.45)]"
+                />
+
+                <p className="mt-4 text-sm text-white/70">
+                  Entre e acompanhe desafios de leitura com amigos.
+                </p>
+
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  <Badge>📚 hábitos</Badge>
+                  <Badge>🔥 streak</Badge>
+                  <Badge>✨ cozy vibe</Badge>
+                </div>
+              </div>
+            </section>
+
+            {/* RIGHT - Login panel */}
+            <section className="relative p-7 sm:p-8 lg:p-10 flex flex-col justify-center">
+              {/* Mobile header */}
+              <div className="lg:hidden flex items-center gap-3 mb-6">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
                   <Image
                     src="/reading-cat-icon-2.png"
@@ -51,37 +76,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="relative mt-10 hidden items-center justify-center lg:flex">
-                <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#1F1B3A]/35 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] backdrop-blur">
-                  <div className="pointer-events-none absolute -top-10 left-10 h-28 w-28 rounded-full bg-[#39FF14]/10 blur-3xl" />
-                  <div className="pointer-events-none absolute -bottom-10 right-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
-
-                  <div className="relative flex flex-col items-center text-center">
-                    <Image
-                      src="/reading-cat-2.png"
-                      alt="Reading Cats illustration"
-                      width={360}
-                      height={360}
-                      priority
-                      className="h-auto w-[260px] sm:w-[300px] drop-shadow-[0_20px_40px_rgba(0,0,0,.45)]"
-                    />
-
-                    <p className="mt-4 text-sm text-white/70">
-                      Entre e acompanhe desafios de leitura com amigos.
-                    </p>
-
-                    <div className="mt-6 flex flex-wrap justify-center gap-2">
-                      <Badge>📚 hábitos</Badge>
-                      <Badge>🔥 streak</Badge>
-                      <Badge>✨ cozy vibe</Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* RIGHT */}
-            <section className="p-7 sm:p-8 lg:p-10">
               <div className="mx-auto w-full max-w-md">
                 <LoginPanel />
               </div>
