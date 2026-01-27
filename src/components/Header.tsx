@@ -1,7 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { useUser } from '@/src/contexts/user/UserContext';
+import CreateGroupModal from '@/src/components/feed/CreateGroupModal';
 
 function getInitials(nameOrEmail: string) {
   const s = nameOrEmail.trim();
@@ -17,11 +19,13 @@ function getInitials(nameOrEmail: string) {
 
 export default function Header() {
   const { me } = useUser();
+  const [openCreate, setOpenCreate] = useState(false);
 
   const displayName = me?.displayName ?? me?.email ?? '—';
   const initials = getInitials(displayName);
 
   return (
+    <>
     <header className='sticky top-0 z-50 border-b border-white/10 bg-[#1F1B3A]/60 backdrop-blur supports-[backdrop-filter]:bg-[#1F1B3A]/50'>
       <div className='mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-6'>
         {/* Left: Brand */}
@@ -67,6 +71,7 @@ export default function Header() {
           <button
             className='hidden rounded-xl bg-[#39FF14] px-4 py-2 text-sm font-semibold text-[#1F1B3A] shadow-lg hover:brightness-110 md:inline-flex'
             type='button'
+            onClick={() => setOpenCreate(true)}
           >
             Criar Grupo
           </button>
@@ -119,5 +124,13 @@ export default function Header() {
         </div>
       </div>
     </header>
+    <CreateGroupModal
+      open={openCreate}
+      onClose={() => setOpenCreate(false)}
+      onSubmit={(data) => {
+        console.log('CreateGroup submit from Header:', data);
+      }}
+    />
+    </>
   );
 }

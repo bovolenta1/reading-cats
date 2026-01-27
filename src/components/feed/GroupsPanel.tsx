@@ -1,9 +1,12 @@
-import React from 'react';
+'use client'
+
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { FaTrophy } from 'react-icons/fa6';
 import { FiUsers } from 'react-icons/fi';
 import { avatarDataUrl } from '@/src/lib/utils/avatar';
 import ProgressBar from '../ui/ProgressBar';
+import CreateGroupModal from '@/src/components/feed/CreateGroupModal';
 
 type MemberAvatar =
   | { type: 'image'; src: string; alt: string }
@@ -177,6 +180,7 @@ export default function GroupsPanel({
   onSeeAll,
   onSeeRanking,
 }: Props) {
+  const [openCreate, setOpenCreate] = useState(false);
   const preview = groups.slice(0, maxPreview);
 
   return (
@@ -208,12 +212,21 @@ export default function GroupsPanel({
 
           <button
             type='button'
+            onClick={() => setOpenCreate(true)}
             className='cursor-pointer rounded-xl bg-[#39FF14] px-4 py-2 text-sm font-semibold text-[#0F0C22] shadow-lg hover:brightness-110'
           >
             Criar grupo
           </button>
         </div>
       </div>
+      <CreateGroupModal
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onSubmit={(data) => {
+          console.log('CreateGroup submit from GroupsPanel:', data);
+          setOpenCreate(false);
+        }}
+      />
     </section>
   );
 }
