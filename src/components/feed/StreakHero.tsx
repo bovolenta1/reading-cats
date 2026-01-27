@@ -18,9 +18,17 @@ import type { ReadingProgress, ChangeGoalResponse } from '@/src/lib/api/reading'
 type StreakHeroProps = {
   // snapshot vindo do server (GET /v1/reading/progress)
   progress: ReadingProgress;
+  currentGoal?: {
+    daily_pages: number;
+    valid_from: string;
+  };
+  nextGoal?: {
+    daily_pages: number;
+    valid_from: string;
+  };
 };
 
-export default function StreakHero({ progress }: StreakHeroProps) {
+export default function StreakHero({ progress, currentGoal, nextGoal: initialNextGoal }: StreakHeroProps) {
   const [open, setOpen] = useState(false);
   const [openGoal, setOpenGoal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -29,10 +37,18 @@ export default function StreakHero({ progress }: StreakHeroProps) {
 
   // Mantém um estado local porque o componente é interativo (POST atualiza snapshot)
   const [localProgress, setLocalProgress] = useState<ReadingProgress>(progress);
-  const [nextGoal, setNextGoal] = useState<ChangeGoalResponse['next_goal'] | null>(null);
+  const [localNextGoal, setLocalNextGoal] = useState(initialNextGoal);
 
   // Se o server re-renderizar e mandar outro snapshot, sincroniza
-  useEffect(() => setLocalProgress(progress), [progress]);
+  useEffect(() => {
+    setLocalProgress(progress);
+  }, [progress]);
+
+  useEffect(() => {
+    if (initialNextGoal) {
+      setLocalNextGoal(initialNextGoal);
+    }
+  }, [initialNextGoal]);
 
   const streakDays = localProgress.streak.current_days;
   const todayPages = localProgress.day.pages;
@@ -44,11 +60,17 @@ export default function StreakHero({ progress }: StreakHeroProps) {
 
   const isCheckedToday = todayPages > 0;
 
+  const shouldShowNextGoal = useMemo(() => {
+    if (!localNextGoal) return false;
+    return localNextGoal.daily_pages !== goalPages;
+  }, [localNextGoal, goalPages]);
+
   const handleSubmit = async (deltaPages: number) => {
     setSubmitting(true);
     try {
       const data = await postReading(deltaPages);
       if (data?.progress) setLocalProgress(data.progress);
+      if (data?.next_goal) setLocalNextGoal(data.next_goal);
       setOpen(false);
     } finally {
       setSubmitting(false);
@@ -59,7 +81,8 @@ export default function StreakHero({ progress }: StreakHeroProps) {
     setSubmitting(true);
     try {
       const data = await putReadingGoal(newGoal);
-      setNextGoal(data.next_goal);
+      console.log("AQUIIIIII", data)
+      setLocalNextGoal(data.next_goal);
       setToastMessage(`✓ Nova meta de ${data.next_goal.daily_pages} pág será válida a partir de ${new Date(data.next_goal.valid_from).toLocaleDateString('pt-BR')}`);
       setShowToast(true);
       setOpenGoal(false);
@@ -97,9 +120,9 @@ export default function StreakHero({ progress }: StreakHeroProps) {
                 <p className='shrink-0 text-sm text-white/60'>
                   Meta do dia: {todayPages}/{goalPages} páginas
                 </p>
-                {nextGoal && (
+                {shouldShowNextGoal && localNextGoal && (
                   <span className='text-xs text-white/40 px-2 py-1 rounded-full bg-white/5 border border-white/10'>
-                    Amanhã: {nextGoal.daily_pages} pág
+                    Amanhã: {localNextGoal.daily_pages} pág
                   </span>
                 )}
               </div>

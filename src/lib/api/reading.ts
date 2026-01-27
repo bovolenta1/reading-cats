@@ -18,10 +18,14 @@ export type ReadingProgress = {
 
 export type GetReadingProgressResponse = {
   progress: ReadingProgress;
+  current_goal?: GoalInfo;
+  next_goal?: GoalInfo;
 };
 
 export type RegisterReadingResponse = {
   progress: ReadingProgress;
+  current_goal?: GoalInfo;
+  next_goal?: GoalInfo;
 };
 
 export type GoalInfo = {

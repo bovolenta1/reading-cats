@@ -46,7 +46,7 @@ const groups: GroupItem[] = [
 ];
 
 export default async function FeedPage() {
-  const progress = await getReadingProgressServer();
+  const { progress, currentGoal, nextGoal } = await getReadingProgressServer();
 
   const posts = [
     {
@@ -117,7 +117,11 @@ export default async function FeedPage() {
       <section className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6'>
         {/* Col 1 / Row 1 */}
         <div className='lg:col-start-1 lg:row-start-1'>
-          <StreakSection initialProgress={progress} />
+          <StreakSection
+            initialProgress={progress}
+            initialCurrentGoal={currentGoal}
+            initialNextGoal={nextGoal}
+          />
         </div>
 
         {/* Col 2 / Row 1-2 (row span) */}
