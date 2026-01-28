@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { FaTrophy } from 'react-icons/fa6';
 import { FiUsers } from 'react-icons/fi';
 import { avatarDataUrl } from '@/src/lib/utils/avatar';
@@ -98,11 +99,14 @@ function GroupRow({ g, onSeeRanking }: { g: GroupItem; onSeeRanking?: (groupId: 
   const remaining = Math.max(0, g.avatars.length - top3.length);
 
   return (
-    <div
+    <Link
+      href={`/group/${g.id}`}
+      onClick={() => onSeeRanking?.(g.id)}
       className={[
-        'rounded-2xl border p-4 backdrop-blur',
+        'block rounded-2xl border p-4 backdrop-blur transition',
         g.highlight ? 'border-[#39FF14]/20 bg-[#39FF14]/[0.06]' : 'border-white/10 bg-black/20 hover:bg-white/5',
       ].join(' ')}
+      aria-label={`Abrir página do grupo ${g.name}`}
     >
       <div className='flex gap-4'>
         <GroupIcon iconSrc={g.iconSrc} emoji={g.emoji} highlight={g.highlight} name={g.name} />
@@ -158,17 +162,14 @@ function GroupRow({ g, onSeeRanking }: { g: GroupItem; onSeeRanking?: (groupId: 
               </div>
             </div>
 
-            <button
-              type='button'
-              className='inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 ring-1 ring-white/10 hover:bg-white/10 sm:shrink-0'
-            >
+            <div className='inline-flex items-center justify-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 ring-1 ring-white/10'>
               <FaTrophy size={14} className='text-white/70' />
               Ver ranking
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
