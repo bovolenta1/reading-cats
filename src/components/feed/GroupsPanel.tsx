@@ -6,7 +6,7 @@ import { FaTrophy } from 'react-icons/fa6';
 import { FiUsers } from 'react-icons/fi';
 import { avatarDataUrl } from '@/src/lib/utils/avatar';
 import ProgressBar from '../ui/ProgressBar';
-import CreateGroupModal from '@/src/components/feed/CreateGroupModal';
+import CreateGroupModal from '@/src/components/feed/create-group/CreateGroupModal';
 
 type MemberAvatar =
   | { type: 'image'; src: string; alt: string }

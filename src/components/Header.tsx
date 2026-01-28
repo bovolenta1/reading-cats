@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { useUser } from '@/src/contexts/user/UserContext';
-import CreateGroupModal from '@/src/components/feed/CreateGroupModal';
+import CreateGroupModal from '@/src/components/feed/create-group/CreateGroupModal';
 
 function getInitials(nameOrEmail: string) {
   const s = nameOrEmail.trim();
