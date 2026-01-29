@@ -73,12 +73,12 @@ const summaryStats = {
 };
 
 const groupInfo = {
-  name: 'Clube 2026',
+  name: 'RC - Founders Club',
   creator: 'Eduardo',
   progressPct: 42,
   endsInDays: 30,
   inviteOnly: true,
-  icon: '/group-icons/cat-and-book-icon.png',
+  icon: '/group-icons/founders-reading-cats-icon.png',
 };
 
 function classNames(...parts: Array<string | false | null | undefined>) {

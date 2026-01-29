@@ -7,9 +7,9 @@ import StreakSection from '@/src/components/feed/StreakSection';
 const groups: GroupItem[] = [
   {
     id: 'g1',
-    name: 'Clube 2026',
+    name: 'RC - Founders Club',
     emoji: '⭐',
-    iconSrc: '/group-icons/chest-icon.png',
+    iconSrc: '/group-icons/founders-reading-cats-icon.png',
     rank: 1,
     membersCount: 6,
     streakDays: 7,

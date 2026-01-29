@@ -61,7 +61,7 @@ export default function StreakHero({ progress, currentGoal, nextGoal: initialNex
   const isCheckedToday = todayPages > 0;
 
   const shouldShowNextGoal = useMemo(() => {
-    if (!localNextGoal) return false;
+    if (!localNextGoal || localNextGoal.daily_pages === 0) return false;
     return localNextGoal.daily_pages !== goalPages;
   }, [localNextGoal, goalPages]);
 
